@@ -3,3 +3,4 @@ kotlin = "2.2.0"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-powerassert-plugin = { module = "org.jetbrains.kotlin:kotlin-power-assert", version.ref = "kotlin" }
