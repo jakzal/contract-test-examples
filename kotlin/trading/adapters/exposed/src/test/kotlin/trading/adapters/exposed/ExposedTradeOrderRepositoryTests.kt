@@ -58,7 +58,7 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t456"))
 
@@ -94,7 +94,7 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t999"))
 
@@ -120,7 +120,7 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("987"))
 
@@ -149,7 +149,7 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("123"))
 
@@ -161,6 +161,8 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
             tradeOrders
         )
     }
+
+    private fun createTradeOrderRepository(): TradeOrderRepository = ExposedTradeOrderRepository(postgresql.connection)
 }
 
 private val <SELF : PostgreSQLContainer<SELF>> PostgreSQLContainer<SELF>.connection
