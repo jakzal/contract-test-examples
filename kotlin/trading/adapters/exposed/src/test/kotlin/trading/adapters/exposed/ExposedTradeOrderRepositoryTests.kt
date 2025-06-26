@@ -15,6 +15,7 @@ import trading.BrokerageAccountId
 import trading.Security
 import trading.TrackingId
 import trading.TradeOrder
+import trading.TradeOrderRepositoryContract
 import trading.TradeOrderStatus.FULFILLED
 import trading.TradeOrderStatus.OUTSTANDING
 import trading.TradeOrderType.BUY_ORDER
@@ -24,7 +25,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 @Testcontainers
-class ExposedTradeOrderRepositoryTests {
+class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     companion object {
         @Container
