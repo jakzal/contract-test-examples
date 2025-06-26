@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 @Testcontainers(disabledWithoutDocker = true)
-class ExposedTradeOrderRepositoryTests {
+class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     companion object {
         @Container
