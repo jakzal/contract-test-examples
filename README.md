@@ -27,3 +27,7 @@ The expected behaviour of `TradeOrderRepository` methods:
   * returns an empty list if no TradeOrder was found for the given account ID
 
 <!-- diagrams: https://excalidraw.com/#json=BO8BXplvlraagR_1XPHqN,kpyw34vOoCd64QOgC71_sQ -->
+
+#### Solutions
+
+- [Kotlin](https://github.com/jakzal/contract-test-examples/tree/main/kotlin/trading) | Steps: [Domain Model](https://github.com/jakzal/contract-test-examples/commit/a280090fc8e08c46450be5197f73f5841516880b) > [Integration microtest](https://github.com/jakzal/contract-test-examples/commit/4697ac952b3b679beacf215bf2ed4a45f5baeeb3) > [Contract placeholder](https://github.com/jakzal/contract-test-examples/commit/d4354cd93cb7f07ef4adf06aa5d1bf3056d74a8a) > [Extract creational method](https://github.com/jakzal/contract-test-examples/commit/f9f7092f39b41f787d9ca2a2f2e26a926d7b55f5) > [Extract fixture setup](https://github.com/jakzal/contract-test-examples/commit/7f7fc92cccc79b1fef11cd55692632a5c1aac7b6) > [Pull tests up to the contract test case](https://github.com/jakzal/contract-test-examples/commit/6fa77f300369aa850a35b98550fa9b2bd6e3d1a1) > [Second adapter](https://github.com/jakzal/contract-test-examples/commit/5358e696f7a84803be0633161cc47e4d0f9a6062)
