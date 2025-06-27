@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm")
     `java-library`
     kotlin("plugin.power-assert")
+    id("java-test-fixtures") apply false
 }
 
 repositories {
@@ -21,6 +22,7 @@ kotlin {
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 powerAssert {
     functions = listOf("kotlin.assert", "kotlin.test.assertEquals", "kotlin.test.assertTrue", "kotlin.test.assertNull")
+    sourceSets.findByName("testFixtures")?.let { testFixtures -> includedSourceSets.add(testFixtures.name) }
 }
 
 tasks.test {
