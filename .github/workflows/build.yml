@@ -1,0 +1,15 @@
+name: Build
+on: [push]
+jobs:
+  build-kotlin:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: 21
+        distribution: zulu
+        cache: gradle
+    - name: Build & Test
+      run: cd kotlin && ./gradlew build
