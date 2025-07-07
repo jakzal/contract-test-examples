@@ -41,14 +41,14 @@ class TradeOrderRepositoryTests(
     }
 
     @Test
-    fun `returns the TradeOrder if it exists for the given tracking ID`() {
-        fixture.givenExistingTradeOrders(
+    fun `returns the TradeOrder if it exists for the given tracking ID`() = with(fixture) {
+        givenExistingTradeOrders(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
 
-        val repository = fixture.createTradeOrderRepository()
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t456"))
 
@@ -66,14 +66,14 @@ class TradeOrderRepositoryTests(
     }
 
     @Test
-    fun `returns null if the TradeOrder is not found for the given tracking ID`() {
-        fixture.givenExistingTradeOrders(
+    fun `returns null if the TradeOrder is not found for the given tracking ID`() = with(fixture) {
+        givenExistingTradeOrders(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
 
-        val repository = fixture.createTradeOrderRepository()
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t999"))
 
@@ -81,14 +81,14 @@ class TradeOrderRepositoryTests(
     }
 
     @Test
-    fun `returns an empty list if no TradeOrder was found for the given account ID`() {
-        fixture.givenExistingTradeOrders(
+    fun `returns an empty list if no TradeOrder was found for the given account ID`() = with(fixture) {
+        givenExistingTradeOrders(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
 
-        val repository = fixture.createTradeOrderRepository()
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("987"))
 
@@ -96,8 +96,8 @@ class TradeOrderRepositoryTests(
     }
 
     @Test
-    fun `returns all outstanding TradeOrders for the given account ID`() {
-        fixture.givenExistingTradeOrders(
+    fun `returns all outstanding TradeOrders for the given account ID`() = with(fixture) {
+        givenExistingTradeOrders(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED),
@@ -106,7 +106,7 @@ class TradeOrderRepositoryTests(
             TradeOrder(TrackingId("t300"), BrokerageAccountId("123"), SELL_ORDER, Security("AMZN"), 75, OUTSTANDING)
         )
 
-        val repository = fixture.createTradeOrderRepository()
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("123"))
 
