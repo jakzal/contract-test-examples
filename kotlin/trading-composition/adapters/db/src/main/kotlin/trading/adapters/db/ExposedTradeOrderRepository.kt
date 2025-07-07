@@ -1,4 +1,4 @@
-package trading.adapters.exposed
+package trading.adapters.db
 
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.Database

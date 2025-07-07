@@ -1,4 +1,4 @@
-package trading.adapters.exposed
+package trading.adapters.db
 
 import org.jetbrains.exposed.v1.core.Table
 import trading.TradeOrderStatus

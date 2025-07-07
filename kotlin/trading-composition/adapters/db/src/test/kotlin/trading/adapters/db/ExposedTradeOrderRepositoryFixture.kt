@@ -1,4 +1,4 @@
-package trading.adapters.exposed
+package trading.adapters.db
 
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -23,9 +23,10 @@ class ExposedTradeOrderRepositoryFixture : TradeOrderRepositoryFixture {
         SchemaUtils.create(TradeOrders)
     }
 
-    override fun createTradeOrderRepository(): TradeOrderRepository = ExposedTradeOrderRepository(
-        postgresql.connection
-    )
+    override fun createTradeOrderRepository(): TradeOrderRepository =
+        ExposedTradeOrderRepository(
+            postgresql.connection
+        )
 
     override fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): Unit =
         transaction(postgresql.connection) {

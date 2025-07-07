@@ -1,4 +1,4 @@
-package trading.adapters.exposed
+package trading.adapters.db
 
 import org.junit.jupiter.params.ParameterizedClass
 import org.junit.jupiter.params.provider.Arguments
