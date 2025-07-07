@@ -31,6 +31,7 @@ class TradeOrderRepositoryTests(
         @JvmStatic
         fun fixtures(): Stream<Arguments> = Stream.of(
             arguments(ExposedTradeOrderRepositoryFixture()),
+            arguments(InMemoryTradeOrderRepositoryFixture())
         )
     }
 
