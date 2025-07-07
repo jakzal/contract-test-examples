@@ -11,10 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import trading.BrokerageAccountId
-import trading.Security
-import trading.TrackingId
-import trading.TradeOrder
+import trading.*
 import trading.TradeOrderStatus.FULFILLED
 import trading.TradeOrderStatus.OUTSTANDING
 import trading.TradeOrderType.BUY_ORDER
@@ -57,7 +54,7 @@ class ExposedTradeOrderRepositoryTests {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t456"))
 
@@ -93,7 +90,7 @@ class ExposedTradeOrderRepositoryTests {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t999"))
 
@@ -119,7 +116,7 @@ class ExposedTradeOrderRepositoryTests {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("987"))
 
@@ -148,7 +145,7 @@ class ExposedTradeOrderRepositoryTests {
             }
         }
 
-        val repository = ExposedTradeOrderRepository(postgresql.connection)
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("123"))
 
@@ -160,6 +157,8 @@ class ExposedTradeOrderRepositoryTests {
             tradeOrders
         )
     }
+
+    private fun createTradeOrderRepository(): TradeOrderRepository = ExposedTradeOrderRepository(postgresql.connection)
 }
 
 private val <SELF : PostgreSQLContainer<SELF>> PostgreSQLContainer<SELF>.connection
