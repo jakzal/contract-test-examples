@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
 import trading.TradeOrder
+import trading.TradeOrderRepository
 import trading.TradeOrderRepositoryContract
 import kotlin.test.BeforeTest
 
@@ -29,9 +30,12 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
         SchemaUtils.create(TradeOrders)
     }
 
-    override fun createTradeOrderRepository() = ExposedTradeOrderRepository(postgresql.connection)
+    override fun tradeOrderRepositoryWith(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): TradeOrderRepository {
+        givenExistingTradeOrders(tradeOrder, *tradeOrders)
+        return ExposedTradeOrderRepository(postgresql.connection)
+    }
 
-    override fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): Unit =
+    private fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): Unit =
         transaction(postgresql.connection) {
             addLogger(StdOutSqlLogger)
             TradeOrders.batchInsert(listOf(tradeOrder) + tradeOrders.toList()) {
