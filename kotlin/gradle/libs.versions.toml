@@ -1,20 +1,6 @@
 [versions]
 kotlin = "2.2.0"
-exposed = "1.0.0-beta-2"
-postgresql = "42.7.7"
-testcontainers = "1.21.2"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-powerassert-plugin = { module = "org.jetbrains.kotlin:kotlin-power-assert", version.ref = "kotlin" }
-exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
-exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
-exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
-postgresql = { module = "org.postgresql:postgresql", version.ref="postgresql" }
-testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-
-[bundles]
-exposed = ["exposed-core", "exposed-jdbc", "exposed-kotlin-datetime"]
-testcontainers = ["testcontainers", "testcontainers-postgresql", "testcontainers-junit"]
