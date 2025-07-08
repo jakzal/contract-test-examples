@@ -7,5 +7,4 @@ dependencies {
     implementation(libs.bundles.exposed)
     implementation(libs.postgresql)
     testImplementation(libs.bundles.testcontainers)
-    testImplementation(testFixtures(project(":trading:domain")))
 }
