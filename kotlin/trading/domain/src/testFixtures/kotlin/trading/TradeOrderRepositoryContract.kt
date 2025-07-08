@@ -3,7 +3,7 @@ package trading
 import trading.TradeOrderStatus.FULFILLED
 import trading.TradeOrderStatus.OUTSTANDING
 import trading.TradeOrderType.BUY_ORDER
-import java.util.concurrent.atomic.AtomicInteger
+import trading.TradeOrderType.SELL_ORDER
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -12,26 +12,38 @@ abstract class TradeOrderRepositoryContract {
 
     @Test
     fun `returns the TradeOrder if it exists for the given tracking ID`() {
-        val matching = tradeOrder(trackingId = TrackingId("t456"))
-
-        val repository = tradeOrderRepositoryWith(
-            tradeOrder(trackingId = TrackingId("t123")),
-            matching,
-            tradeOrder(trackingId = TrackingId("t789"))
+        givenExistingTradeOrders(
+            TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
+            TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
+            TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
 
-        val found = repository.forTrackingId(TrackingId("t456"))
+        val repository = createTradeOrderRepository()
 
-        assertEquals(matching, found)
+        val tradeOrder = repository.forTrackingId(TrackingId("t456"))
+
+        assertEquals(
+            TradeOrder(
+                TrackingId("t456"),
+                BrokerageAccountId("123"),
+                SELL_ORDER,
+                Security("WCOM"),
+                50,
+                FULFILLED
+            ),
+            tradeOrder
+        )
     }
 
     @Test
     fun `returns null if the TradeOrder is not found for the given tracking ID`() {
-        val repository = tradeOrderRepositoryWith(
-            tradeOrder(trackingId = TrackingId("t123")),
-            tradeOrder(trackingId = TrackingId("t456")),
-            tradeOrder(trackingId = TrackingId("t789"))
+        givenExistingTradeOrders(
+            TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
+            TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
+            TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
+
+        val repository = createTradeOrderRepository()
 
         val tradeOrder = repository.forTrackingId(TrackingId("t999"))
 
@@ -40,11 +52,13 @@ abstract class TradeOrderRepositoryContract {
 
     @Test
     fun `returns an empty list if no TradeOrder was found for the given account ID`() {
-        val repository = tradeOrderRepositoryWith(
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = FULFILLED),
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = FULFILLED),
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = FULFILLED)
+        givenExistingTradeOrders(
+            TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
+            TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
+            TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
+
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("987"))
 
@@ -53,64 +67,29 @@ abstract class TradeOrderRepositoryContract {
 
     @Test
     fun `returns all outstanding TradeOrders for the given account ID`() {
-        val matchingBothAccountIdAndStatus =
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = OUTSTANDING)
-        val anotherMatchingBotAccountIdAndStatus =
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = OUTSTANDING)
-        val matchingAccountIdButFulfilled =
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = FULFILLED)
-        val outstandingButAnyOtherAccountId =
-            tradeOrder(brokerageAccountId = BrokerageAccountId("344"), status = OUTSTANDING)
-        val anotherMatchingAccountIdButFulfilled =
-            tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = FULFILLED)
-
-        val repository = tradeOrderRepositoryWith(
-            matchingBothAccountIdAndStatus,
-            matchingAccountIdButFulfilled,
-            anotherMatchingAccountIdButFulfilled,
-            outstandingButAnyOtherAccountId,
-            anotherMatchingBotAccountIdAndStatus,
+        givenExistingTradeOrders(
+            TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
+            TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
+            TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED),
+            TradeOrder(TrackingId("t100"), BrokerageAccountId("344"), BUY_ORDER, Security("AMZN"), 15, OUTSTANDING),
+            TradeOrder(TrackingId("t200"), BrokerageAccountId("344"), BUY_ORDER, Security("GOOG"), 25, OUTSTANDING),
+            TradeOrder(TrackingId("t300"), BrokerageAccountId("123"), SELL_ORDER, Security("AMZN"), 75, OUTSTANDING),
         )
+
+        val repository = createTradeOrderRepository()
 
         val tradeOrders = repository.outstandingForBrokerageAccountId(BrokerageAccountId("123"))
 
-        assertEquals(listOf(matchingBothAccountIdAndStatus, anotherMatchingBotAccountIdAndStatus), tradeOrders)
+        assertEquals(
+            listOf(
+                TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
+                TradeOrder(TrackingId("t300"), BrokerageAccountId("123"), SELL_ORDER, Security("AMZN"), 75, OUTSTANDING)
+            ),
+            tradeOrders
+        )
     }
 
-    private fun tradeOrder(
-        trackingId: TrackingId? = null,
-        brokerageAccountId: BrokerageAccountId? = null,
-        type: TradeOrderType? = null,
-        security: Security? = null,
-        numberOfShares: Int? = null,
-        status: TradeOrderStatus? = null,
-    ): TradeOrder =
-        TradeOrder(
-            trackingId.orGenerate(),
-            brokerageAccountId.orGenerate(),
-            type.orRandom(),
-            security.orRandom(),
-            numberOfShares.orRandom(),
-            status.orRandom()
-        )
+    protected abstract fun createTradeOrderRepository(): TradeOrderRepository
 
-    protected abstract fun tradeOrderRepositoryWith(
-        tradeOrder: TradeOrder,
-        vararg tradeOrders: TradeOrder
-    ): TradeOrderRepository
+    protected abstract fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder)
 }
-
-private val lastTrackingId = AtomicInteger(1000)
-
-private fun TrackingId?.orGenerate() = this ?: TrackingId("t${lastTrackingId.incrementAndGet()}")
-private val lastBrokerageAccountId = AtomicInteger(2000)
-
-private fun BrokerageAccountId?.orGenerate() = this ?: BrokerageAccountId("${lastBrokerageAccountId.incrementAndGet()}")
-
-private fun TradeOrderStatus?.orRandom() = this ?: TradeOrderStatus.values().random()
-
-private fun TradeOrderType?.orRandom() = this ?: BUY_ORDER
-
-private fun Security?.orRandom() = this ?: Security(listOf("AMZN", "WCOM", "GOOG").random())
-
-private fun Int?.orRandom() = this ?: (1..500).random()
