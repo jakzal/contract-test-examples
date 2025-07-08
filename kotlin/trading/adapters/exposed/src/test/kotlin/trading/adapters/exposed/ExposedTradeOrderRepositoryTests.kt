@@ -11,7 +11,11 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import trading.*
+import trading.BrokerageAccountId
+import trading.Security
+import trading.TrackingId
+import trading.TradeOrder
+import trading.TradeOrderRepositoryContract
 import trading.TradeOrderStatus.FULFILLED
 import trading.TradeOrderStatus.OUTSTANDING
 import trading.TradeOrderType.BUY_ORDER
@@ -37,11 +41,22 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     @Test
     fun `returns the TradeOrder if it exists for the given tracking ID`() {
-        givenExistingTradeOrders(
+        val existingTradeOrders = listOf(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
+        transaction(postgresql.connection) {
+            addLogger(StdOutSqlLogger)
+            TradeOrders.batchInsert(existingTradeOrders) {
+                this[TradeOrders.trackingId] = it.trackingId.value
+                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
+                this[TradeOrders.type] = it.type
+                this[TradeOrders.security] = it.security.value
+                this[TradeOrders.numberOfShares] = it.numberOfShares
+                this[TradeOrders.status] = it.status
+            }
+        }
 
         val repository = createTradeOrderRepository()
 
@@ -62,11 +77,22 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     @Test
     fun `returns null if the TradeOrder is not found for the given tracking ID`() {
-        givenExistingTradeOrders(
+        val existingTradeOrders = listOf(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
+        transaction(postgresql.connection) {
+            addLogger(StdOutSqlLogger)
+            TradeOrders.batchInsert(existingTradeOrders) {
+                this[TradeOrders.trackingId] = it.trackingId.value
+                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
+                this[TradeOrders.type] = it.type
+                this[TradeOrders.security] = it.security.value
+                this[TradeOrders.numberOfShares] = it.numberOfShares
+                this[TradeOrders.status] = it.status
+            }
+        }
 
         val repository = createTradeOrderRepository()
 
@@ -77,11 +103,22 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     @Test
     fun `returns an empty list if no TradeOrder was found for the given account ID`() {
-        givenExistingTradeOrders(
+        val existingTradeOrders = listOf(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED)
         )
+        transaction(postgresql.connection) {
+            addLogger(StdOutSqlLogger)
+            TradeOrders.batchInsert(existingTradeOrders) {
+                this[TradeOrders.trackingId] = it.trackingId.value
+                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
+                this[TradeOrders.type] = it.type
+                this[TradeOrders.security] = it.security.value
+                this[TradeOrders.numberOfShares] = it.numberOfShares
+                this[TradeOrders.status] = it.status
+            }
+        }
 
         val repository = createTradeOrderRepository()
 
@@ -92,7 +129,7 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     @Test
     fun `returns all outstanding TradeOrders for the given account ID`() {
-        givenExistingTradeOrders(
+        val existingTradeOrders = listOf(
             TradeOrder(TrackingId("t123"), BrokerageAccountId("123"), BUY_ORDER, Security("AMZN"), 10, OUTSTANDING),
             TradeOrder(TrackingId("t456"), BrokerageAccountId("123"), SELL_ORDER, Security("WCOM"), 50, FULFILLED),
             TradeOrder(TrackingId("t789"), BrokerageAccountId("123"), SELL_ORDER, Security("GOOG"), 25, FULFILLED),
@@ -100,6 +137,17 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
             TradeOrder(TrackingId("t200"), BrokerageAccountId("344"), BUY_ORDER, Security("GOOG"), 25, OUTSTANDING),
             TradeOrder(TrackingId("t300"), BrokerageAccountId("123"), SELL_ORDER, Security("AMZN"), 75, OUTSTANDING),
         )
+        transaction(postgresql.connection) {
+            addLogger(StdOutSqlLogger)
+            TradeOrders.batchInsert(existingTradeOrders) {
+                this[TradeOrders.trackingId] = it.trackingId.value
+                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
+                this[TradeOrders.type] = it.type
+                this[TradeOrders.security] = it.security.value
+                this[TradeOrders.numberOfShares] = it.numberOfShares
+                this[TradeOrders.status] = it.status
+            }
+        }
 
         val repository = createTradeOrderRepository()
 
@@ -115,19 +163,6 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
     }
 
     private fun createTradeOrderRepository(): TradeOrderRepository = ExposedTradeOrderRepository(postgresql.connection)
-
-    private fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder) =
-        transaction(postgresql.connection) {
-            addLogger(StdOutSqlLogger)
-            TradeOrders.batchInsert(listOf(tradeOrder) + tradeOrders.toList()) {
-                this[TradeOrders.trackingId] = it.trackingId.value
-                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
-                this[TradeOrders.type] = it.type
-                this[TradeOrders.security] = it.security.value
-                this[TradeOrders.numberOfShares] = it.numberOfShares
-                this[TradeOrders.status] = it.status
-            }
-        }
 }
 
 private val <SELF : PostgreSQLContainer<SELF>> PostgreSQLContainer<SELF>.connection
