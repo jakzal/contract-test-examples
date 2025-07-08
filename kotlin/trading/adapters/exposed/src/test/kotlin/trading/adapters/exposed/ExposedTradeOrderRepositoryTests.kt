@@ -30,15 +30,15 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
         SchemaUtils.create(TradeOrders)
     }
 
-    override fun tradeOrderRepositoryWith(tradeOrders: List<TradeOrder>): TradeOrderRepository {
-        givenExistingTradeOrders(tradeOrders)
+    override fun tradeOrderRepositoryWith(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): TradeOrderRepository {
+        givenExistingTradeOrders(tradeOrder, *tradeOrders)
         return ExposedTradeOrderRepository(postgresql.connection)
     }
 
-    private fun givenExistingTradeOrders(tradeOrders: List<TradeOrder>): Unit =
+    private fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): Unit =
         transaction(postgresql.connection) {
             addLogger(StdOutSqlLogger)
-            TradeOrders.batchInsert(tradeOrders) {
+            TradeOrders.batchInsert(listOf(tradeOrder) + tradeOrders.toList()) {
                 this[TradeOrders.trackingId] = it.trackingId.value
                 this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
                 this[TradeOrders.type] = it.type
