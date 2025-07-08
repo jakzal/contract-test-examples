@@ -29,20 +29,22 @@ class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
         SchemaUtils.create(TradeOrders)
     }
 
-    override fun createTradeOrderRepository() = ExposedTradeOrderRepository(postgresql.connection)
+    override fun tradeOrderRepositoryWith(tradeOrders: List<TradeOrder>): ExposedTradeOrderRepository {
+        persistTradeOrders(tradeOrders)
+        return ExposedTradeOrderRepository(postgresql.connection)
+    }
 
-    override fun givenExistingTradeOrders(tradeOrder: TradeOrder, vararg tradeOrders: TradeOrder): Unit =
-        transaction(postgresql.connection) {
-            addLogger(StdOutSqlLogger)
-            TradeOrders.batchInsert(listOf(tradeOrder) + tradeOrders.toList()) {
-                this[TradeOrders.trackingId] = it.trackingId.value
-                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
-                this[TradeOrders.type] = it.type
-                this[TradeOrders.security] = it.security.value
-                this[TradeOrders.numberOfShares] = it.numberOfShares
-                this[TradeOrders.status] = it.status
-            }
+    private fun persistTradeOrders(tradeOrders: List<TradeOrder>) = transaction(postgresql.connection) {
+        addLogger(StdOutSqlLogger)
+        TradeOrders.batchInsert(tradeOrders) {
+            this[TradeOrders.trackingId] = it.trackingId.value
+            this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
+            this[TradeOrders.type] = it.type
+            this[TradeOrders.security] = it.security.value
+            this[TradeOrders.numberOfShares] = it.numberOfShares
+            this[TradeOrders.status] = it.status
         }
+    }
 }
 
 private val <SELF : PostgreSQLContainer<SELF>> PostgreSQLContainer<SELF>.connection
