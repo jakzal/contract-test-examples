@@ -14,7 +14,7 @@ import trading.TradeOrder
 import trading.TradeOrderRepositoryContract
 import kotlin.test.BeforeTest
 
-@Testcontainers(disabledWithoutDocker = true)
+@Testcontainers
 class ExposedTradeOrderRepositoryTests : TradeOrderRepositoryContract() {
 
     companion object {
