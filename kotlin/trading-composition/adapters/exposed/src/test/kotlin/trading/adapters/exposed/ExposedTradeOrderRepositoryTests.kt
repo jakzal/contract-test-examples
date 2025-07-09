@@ -6,7 +6,9 @@ import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.addLogger
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.TestFactory
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -16,7 +18,7 @@ import trading.TradeOrderStatus.FULFILLED
 import trading.TradeOrderStatus.OUTSTANDING
 import trading.TradeOrderType.BUY_ORDER
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.test.Test
+import kotlin.test.BeforeTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -28,15 +30,35 @@ class ExposedTradeOrderRepositoryTests {
         private val postgresql = PostgreSQLContainer(DockerImageName.parse("postgres:17-alpine"))
     }
 
-    @BeforeEach
+    @BeforeTest
     fun createSchema(): Unit = transaction(postgresql.connection) {
         addLogger(StdOutSqlLogger)
         SchemaUtils.drop(TradeOrders)
         SchemaUtils.create(TradeOrders)
     }
 
-    @Test
-    fun `returns the TradeOrder if it exists for the given tracking ID`() {
+    @TestFactory
+    fun `TradeOrderRepository Contract`() = TradeOrderRepositoryContract().allTests(::tradeOrderRepositoryWith)
+
+    private fun tradeOrderRepositoryWith(existingTradeOrders: List<TradeOrder>): ExposedTradeOrderRepository {
+        transaction(postgresql.connection) {
+            addLogger(StdOutSqlLogger)
+            TradeOrders.batchInsert(existingTradeOrders) {
+                this[TradeOrders.trackingId] = it.trackingId.value
+                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
+                this[TradeOrders.type] = it.type
+                this[TradeOrders.security] = it.security.value
+                this[TradeOrders.numberOfShares] = it.numberOfShares
+                this[TradeOrders.status] = it.status
+            }
+        }
+        return ExposedTradeOrderRepository(postgresql.connection)
+    }
+}
+
+class TradeOrderRepositoryContract {
+
+    fun `returns the TradeOrder if it exists for the given tracking ID`(tradeOrderRepositoryWith: (List<TradeOrder>) -> TradeOrderRepository) {
         val matching = tradeOrder(trackingId = TrackingId("t456"))
 
         val repository = tradeOrderRepositoryWith(
@@ -52,8 +74,7 @@ class ExposedTradeOrderRepositoryTests {
         assertEquals(matching, found)
     }
 
-    @Test
-    fun `returns null if the TradeOrder is not found for the given tracking ID`() {
+    fun `returns null if the TradeOrder is not found for the given tracking ID`(tradeOrderRepositoryWith: (List<TradeOrder>) -> TradeOrderRepository) {
         val repository = tradeOrderRepositoryWith(
             listOf(
                 tradeOrder(trackingId = trackingIdOtherThan("t999")),
@@ -67,8 +88,7 @@ class ExposedTradeOrderRepositoryTests {
         assertNull(tradeOrder)
     }
 
-    @Test
-    fun `returns an empty list if no TradeOrder was found for the given account ID`() {
+    fun `returns an empty list if no TradeOrder was found for the given account ID`(tradeOrderRepositoryWith: (List<TradeOrder>) -> TradeOrderRepository) {
         val repository = tradeOrderRepositoryWith(
             listOf(
                 tradeOrder(brokerageAccountId = brokerageAccountIdOtherThan("987"), status = FULFILLED),
@@ -82,8 +102,7 @@ class ExposedTradeOrderRepositoryTests {
         assertEquals(emptyList(), tradeOrders)
     }
 
-    @Test
-    fun `returns all outstanding TradeOrders for the given account ID`() {
+    fun `returns all outstanding TradeOrders for the given account ID`(tradeOrderRepositoryWith: (List<TradeOrder>) -> TradeOrderRepository) {
         val matchingBothAccountIdAndStatus =
             tradeOrder(brokerageAccountId = BrokerageAccountId("123"), status = OUTSTANDING)
         val anotherMatchingBothAccountIdAndStatus =
@@ -110,19 +129,13 @@ class ExposedTradeOrderRepositoryTests {
         assertEquals(listOf(matchingBothAccountIdAndStatus, anotherMatchingBothAccountIdAndStatus), tradeOrders)
     }
 
-    private fun tradeOrderRepositoryWith(existingTradeOrders: List<TradeOrder>): ExposedTradeOrderRepository {
-        transaction(postgresql.connection) {
-            addLogger(StdOutSqlLogger)
-            TradeOrders.batchInsert(existingTradeOrders) {
-                this[TradeOrders.trackingId] = it.trackingId.value
-                this[TradeOrders.brokerageAccountId] = it.brokerageAccountId.value
-                this[TradeOrders.type] = it.type
-                this[TradeOrders.security] = it.security.value
-                this[TradeOrders.numberOfShares] = it.numberOfShares
-                this[TradeOrders.status] = it.status
-            }
-        }
-        return ExposedTradeOrderRepository(postgresql.connection)
+    fun allTests(tradeOrderRepositoryWith: (List<TradeOrder>) -> TradeOrderRepository): List<DynamicTest> = listOf(
+        this::`returns the TradeOrder if it exists for the given tracking ID`,
+        this::`returns null if the TradeOrder is not found for the given tracking ID`,
+        this::`returns an empty list if no TradeOrder was found for the given account ID`,
+        this::`returns all outstanding TradeOrders for the given account ID`
+    ).map { test ->
+        dynamicTest(test.name) { test(tradeOrderRepositoryWith) }
     }
 }
 
