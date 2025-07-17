@@ -1,6 +1,6 @@
 # Contract Test Examples
 
-This repository contains examples of [Contract Tests](https://zalas.pl/collaboration-and-contract-tests/)
+This repository contains examples of [Contract Tests](https://zalas.pl/contract-test/)
 in various programming languages.
 
 ## Examples
